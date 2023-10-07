@@ -14,6 +14,8 @@ import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
 import Sketch from '@arcgis/core/widgets/Sketch';
 
 import esriConfig from '@arcgis/core/config.js';
+import { FireDataService } from 'src/app/fire-data.service';
+import { FireData } from 'src/app/models/fire-data';
 esriConfig.assetsPath = "/assets/";
 esriConfig.apiKey = "AAPKcb316cbceb904bcabe2c351f094757dcALC9Q9-1SGUX-p3epTjwPM2kbUkb_hfV4nvUjWsV3OwxFdvi30rSOlRwiIyuLM1W";
 
@@ -25,8 +27,12 @@ esriConfig.apiKey = "AAPKcb316cbceb904bcabe2c351f094757dcALC9Q9-1SGUX-p3epTjwPM2
 export class MapComponent implements OnInit, OnDestroy {
 
   public view!: MapView;
+  public fireDataList!: FireData[];
+
   @ViewChild('mapViewNode', { static: true })
   private mapViewEl!: ElementRef;
+
+  constructor(private fireDataService: FireDataService) { }
 
   async initializeMap(): Promise<MapView> {
     const container = this.mapViewEl.nativeElement;
@@ -53,7 +59,7 @@ export class MapComponent implements OnInit, OnDestroy {
     });
 
     sketch.visibleElements = {
-      selectionTools:{
+      selectionTools: {
         "lasso-selection": false
       },
       createTools: {
@@ -86,6 +92,11 @@ export class MapComponent implements OnInit, OnDestroy {
   ngOnInit() {
     try {
       this.initializeMap().then();
+
+      this.fireDataService.getFireData().subscribe((data: FireData[]) => {
+        console.log(data);
+      });
+      
     } catch (error) {
       console.error(error);
     }
