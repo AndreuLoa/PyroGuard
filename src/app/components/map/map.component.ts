@@ -8,14 +8,12 @@ import {
 
 import Map from "@arcgis/core/Map";
 import MapView from '@arcgis/core/views/MapView';
-import Bookmarks from '@arcgis/core/widgets/Bookmarks';
-import Expand from '@arcgis/core/widgets/Expand';
-import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
-import Sketch from '@arcgis/core/widgets/Sketch';
 
 import esriConfig from '@arcgis/core/config.js';
 esriConfig.assetsPath = "/assets/";
 esriConfig.apiKey = "AAPKcb316cbceb904bcabe2c351f094757dcALC9Q9-1SGUX-p3epTjwPM2kbUkb_hfV4nvUjWsV3OwxFdvi30rSOlRwiIyuLM1W";
+
+import { Point } from '../../models/Point';
 
 @Component({
   selector: 'app-map',
@@ -24,62 +22,28 @@ esriConfig.apiKey = "AAPKcb316cbceb904bcabe2c351f094757dcALC9Q9-1SGUX-p3epTjwPM2
 })
 export class MapComponent implements OnInit, OnDestroy {
 
-  public view!: MapView;
   @ViewChild('mapViewNode', { static: true })
   private mapViewEl!: ElementRef;
+
+  private view!: MapView;
+  private map!: Map;
+  private points: Point[] = [];
+
 
   async initializeMap(): Promise<MapView> {
     const container = this.mapViewEl.nativeElement;
 
-    const map = new Map({
+    this.map = new Map({
       basemap: "arcgis-terrain"
     });
 
-    const view = new MapView({
-      map: map,
+    this.view = new MapView({
+      map: this.map,
       container: container,
       center: [-63.15816823333734, -17.76918441888411], // Longitude, latitude
       zoom: 13,
     });
 
-    // Add sketch widget
-    const graphicsLayerSketch = new GraphicsLayer();
-    map.add(graphicsLayerSketch);
-
-    const sketch = new Sketch({
-      layer: graphicsLayerSketch,
-      view: view,
-      creationMode: "update" // Auto-select
-    });
-
-    sketch.visibleElements = {
-      selectionTools:{
-        "lasso-selection": false
-      },
-      createTools: {
-        point: false,
-        circle: false,
-      },
-      undoRedoMenu: false,
-      settingsMenu: false
-    }
-
-    view.ui.add(sketch, "top-right");
-
-    const bookmarks = new Bookmarks({
-      view: view,
-      editingEnabled: true,
-    });
-
-    const bkExpand = new Expand({
-      view: view,
-      content: bookmarks,
-      expanded: false,
-    });
-
-    view.ui.add(bkExpand, 'top-right');
-
-    this.view = view;
     return await this.view.when();
   }
 
@@ -94,7 +58,10 @@ export class MapComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     if (this.view) {
       // destroy the map view
+      this.map.destroy();
       this.view.destroy();
     }
   }
+
+  //function to add a point to the map
 }
