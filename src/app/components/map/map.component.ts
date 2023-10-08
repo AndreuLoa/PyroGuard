@@ -109,7 +109,6 @@ export class MapComponent implements OnInit, OnDestroy {
       title: "{Name}",
       content: "{Description}"
     }
-      console.log(fireData.confidence);
       
     let confidence = ''
     if (fireData.confidence == 'l') {
