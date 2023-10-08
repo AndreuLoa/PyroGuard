@@ -49,7 +49,31 @@ export class MapComponent implements OnInit, OnDestroy {
     const windLayer = new FeatureLayer({
       title: "Wind Layer",
       url: "https://services9.arcgis.com/RHVPKKiFTONKtxq3/arcgis/rest/services/NOAA_METAR_current_wind_speed_direction_v1/FeatureServer"
-    })
+    });
+
+    // Create a query to fetch data from the feature layer
+    const query = windLayer.createQuery();
+    // Replace with the actual field names you want to extract
+    query.outFields = ['LATITUDE', 'LONGITUDE', 'WIND_DIRECT', 'WIND_SPEED']; 
+
+    // Execute the query and fetch the data
+    windLayer.queryFeatures(query).then((result) => {
+      const features = result.features;
+      
+      // Extract the desired attributes from each feature
+      const extractedData = features.map((feature) => {
+        const attributes = feature.attributes;
+        return {
+          "latitude": attributes.LATITUDE,
+          "longitude": attributes.LONGITUDE,
+          "windDirection": attributes.WIND_DIRECT,
+          "windSpeed": attributes.WIND_SPEED
+        };
+      });
+
+      // Process the extracted data as needed
+      console.log(extractedData);
+    });
 
     this.map = new Map({
       basemap: "arcgis-imagery",
