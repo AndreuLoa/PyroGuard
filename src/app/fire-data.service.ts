@@ -25,13 +25,16 @@ export class FireDataService {
     
     const headers = lines[0].split(',');
   
-    for (let i = 1; i < lines.length; i++) {
+    for (let i = lines.length - 1; i > 100; i--) {
       const currentLine = lines[i].split(',');
+      currentLine[7] = currentLine[7].length < 4 ? `0${currentLine[7]}` : currentLine[7];
       const obj: FireData = {
         latitude: Number(currentLine[1]),
         longitude: Number(currentLine[2]),
-        confidence: currentLine[10], 
-        frp: Number(currentLine[13]), 
+        confidence: currentLine[10],
+        frp: Number(currentLine[13]),
+        acq_date: currentLine[6],
+        acq_time: `${currentLine[7].substring(0, 2)}:${currentLine[7].substring(2, 4)}`
       };
   
       result.push(obj);

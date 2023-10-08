@@ -15,6 +15,8 @@ import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol';
 import Graphic from '@arcgis/core/Graphic';
 import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
 import esriConfig from '@arcgis/core/config.js';
+import BasemapToggle from '@arcgis/core/widgets/BasemapToggle';
+
 esriConfig.assetsPath = "/assets/";
 esriConfig.apiKey = "AAPKcb316cbceb904bcabe2c351f094757dcALC9Q9-1SGUX-p3epTjwPM2kbUkb_hfV4nvUjWsV3OwxFdvi30rSOlRwiIyuLM1W";
 
@@ -33,23 +35,20 @@ export class MapComponent implements OnInit, OnDestroy {
   @ViewChild('mapViewNode', { static: true })
   private mapViewEl!: ElementRef;
   private map!: Map;
-  private view!: MapView; 
+  private view!: MapView;
   private graphicsLayer!: GraphicsLayer;
-  
-  public fireDataList!: FireData[];
-  
+
+
   constructor(
     private fireDataService: FireDataService,
-    ) {
-      this.fireDataList = [];
-   }
+  ) {
+  }
 
   async initializeMap(): Promise<MapView> {
-    console.log(this);
     const container = this.mapViewEl.nativeElement;
 
     this.map = new Map({
-      basemap: "arcgis-terrain"
+      basemap: "arcgis-imagery"
     });
 
     this.view = new MapView({
@@ -68,13 +67,12 @@ export class MapComponent implements OnInit, OnDestroy {
     try {
       this.initializeMap().then();
 
-      this.fireDataService.getFireData().subscribe((data: FireData[]) => {
-        console.log(data);
-        data.forEach(element => {
-          this.createPoint(element.longitude, element.latitude);
+      this.fireDataService.getFireData().subscribe((fireDataList: FireData[]) => {
+        fireDataList.forEach(element => {
+          this.createPoint(element);
         });
       });
-      
+
     } catch (error) {
       console.error(error);
     }
@@ -88,12 +86,12 @@ export class MapComponent implements OnInit, OnDestroy {
     }
   }
 
-  createPoint(longitude: number, latitude: number) {
+  private createPoint(fireData: FireData) {
     const point: Point = new Point({
-      longitude: longitude,
-      latitude: latitude
+      longitude: fireData.longitude,
+      latitude: fireData.latitude
     })
-    
+
     const simpleMarkerSymbol = new SimpleMarkerSymbol({
       color: [226, 119, 40],
       outline: {
@@ -101,10 +99,32 @@ export class MapComponent implements OnInit, OnDestroy {
         width: 1
       }
     });
-    
+
+    const popupTemplate = {
+      title: "{Name}",
+      content: "{Description}"
+    }
+      console.log(fireData.confidence);
+      
+    let confidence = ''
+    if (fireData.confidence == 'l') {
+      confidence = 'Low';
+    } else if (fireData.confidence == 'n') {
+      confidence = 'Medium';
+    } else if (fireData.confidence == 'h') {
+      confidence = 'High';
+    }
+
+    const attributes = {
+      Name: "Wildfire Detected",
+      Description: "<table><tr><td>Date: </td><td>" + fireData.acq_date + "</td></tr><tr><td>Time: </td><td>" + fireData.acq_time + "</td></tr><tr><td>Latitude: </td><td>" + fireData.latitude + "</td></tr><tr><td>Longitude: </td><td>" + fireData.longitude + "</td></tr><tr><td>Confidence level: </td><td>" + confidence + "</td></tr><tr><td>Fire Intensity: </td><td>" + fireData.frp + "</td></tr></table>"
+    }
+
     const pointGraphic = new Graphic({
       geometry: point,
-      symbol: simpleMarkerSymbol
+      symbol: simpleMarkerSymbol,
+      popupTemplate: popupTemplate,
+      attributes: attributes
     });
 
     this.graphicsLayer.add(pointGraphic);
