@@ -1,3 +1,4 @@
+//Angular Imports
 import {
   Component,
   OnInit,
@@ -6,14 +7,21 @@ import {
   ViewChild
 } from '@angular/core';
 
+//ArcGis Imports
 import Map from "@arcgis/core/Map";
 import MapView from '@arcgis/core/views/MapView';
-
+import Point from '@arcgis/core/geometry/Point';
+import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol';
+import Graphic from '@arcgis/core/Graphic';
+import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
 import esriConfig from '@arcgis/core/config.js';
 esriConfig.assetsPath = "/assets/";
 esriConfig.apiKey = "AAPKcb316cbceb904bcabe2c351f094757dcALC9Q9-1SGUX-p3epTjwPM2kbUkb_hfV4nvUjWsV3OwxFdvi30rSOlRwiIyuLM1W";
 
-import { Point } from '../../models/Point';
+//Custom Imports
+import { FireDataService } from 'src/app/fire-data.service';
+import { FireData } from 'src/app/models/fire-data';
+
 
 @Component({
   selector: 'app-map',
@@ -24,13 +32,20 @@ export class MapComponent implements OnInit, OnDestroy {
 
   @ViewChild('mapViewNode', { static: true })
   private mapViewEl!: ElementRef;
-
-  private view!: MapView;
   private map!: Map;
-  private points: Point[] = [];
-
+  private view!: MapView; 
+  private graphicsLayer!: GraphicsLayer;
+  
+  public fireDataList!: FireData[];
+  
+  constructor(
+    private fireDataService: FireDataService,
+    ) {
+      this.fireDataList = [];
+   }
 
   async initializeMap(): Promise<MapView> {
+    console.log(this);
     const container = this.mapViewEl.nativeElement;
 
     this.map = new Map({
@@ -41,15 +56,25 @@ export class MapComponent implements OnInit, OnDestroy {
       map: this.map,
       container: container,
       center: [-63.15816823333734, -17.76918441888411], // Longitude, latitude
-      zoom: 13,
+      zoom: 5,
     });
 
+    this.graphicsLayer = new GraphicsLayer();
+    this.map.add(this.graphicsLayer);
     return await this.view.when();
   }
 
   ngOnInit() {
     try {
       this.initializeMap().then();
+
+      this.fireDataService.getFireData().subscribe((data: FireData[]) => {
+        console.log(data);
+        data.forEach(element => {
+          this.createPoint(element.longitude, element.latitude);
+        });
+      });
+      
     } catch (error) {
       console.error(error);
     }
@@ -63,5 +88,25 @@ export class MapComponent implements OnInit, OnDestroy {
     }
   }
 
-  //function to add a point to the map
+  createPoint(longitude: number, latitude: number) {
+    const point: Point = new Point({
+      longitude: longitude,
+      latitude: latitude
+    })
+    
+    const simpleMarkerSymbol = new SimpleMarkerSymbol({
+      color: [226, 119, 40],
+      outline: {
+        color: [255, 255, 255],
+        width: 1
+      }
+    });
+    
+    const pointGraphic = new Graphic({
+      geometry: point,
+      symbol: simpleMarkerSymbol
+    });
+
+    this.graphicsLayer.add(pointGraphic);
+  }
 }
