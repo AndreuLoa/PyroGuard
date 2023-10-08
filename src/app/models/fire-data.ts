@@ -3,5 +3,7 @@ export interface FireData {
     longitude: number;
     confidence: string;
     frp: number;
+    acq_time: string;
+    acq_date: string;
   }
   

@@ -1,20 +1,16 @@
 @import "https://js.arcgis.com/4.27/@arcgis/core/assets/esri/themes/dark/main.css";
 
 $mapWidth: auto;
-$mapHeight: 50vh;
+$mapHeight: 90vh;
 
-#controlsContainer{
+#mapViewNode {
   margin: 1%;
-  height: 75%;
+}
 
-  #mapViewNode {
-    margin: 1%;
-  }
-
-  #mapViewNode, .esri-view  {
-    padding: 0;
-    margin: 0;
-    min-height: $mapHeight;
-    min-width: $mapWidth;
-  }
+#mapViewNode,
+.esri-view {
+  padding: 0;
+  margin: 0;
+  min-height: $mapHeight;
+  min-width: $mapWidth;
 }
