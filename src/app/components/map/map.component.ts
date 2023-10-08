@@ -15,6 +15,7 @@ import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol';
 import Graphic from '@arcgis/core/Graphic';
 import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
 import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
+import VectorTileLayer from '@arcgis/core/layers/VectorTileLayer';
 import ImageryLayer from '@arcgis/core/layers/ImageryLayer';
 import LayerList from '@arcgis/core/widgets/LayerList';
 import esriConfig from '@arcgis/core/config.js';
@@ -48,42 +49,55 @@ export class MapComponent implements OnInit, OnDestroy {
 
   async initializeMap(): Promise<MapView> {
     const container = this.mapViewEl.nativeElement;
-    const windLayer = new FeatureLayer({
-      title: "Wind Layer",
-      url: "https://services9.arcgis.com/RHVPKKiFTONKtxq3/arcgis/rest/services/NOAA_METAR_current_wind_speed_direction_v1/FeatureServer"
-    });
+    // const windLayer = new FeatureLayer({
+    //   title: "Wind Layer",
+    //   url: "https://services9.arcgis.com/RHVPKKiFTONKtxq3/arcgis/rest/services/NOAA_METAR_current_wind_speed_direction_v1/FeatureServer"
+    // });
     const waterLayer = new ImageryLayer({
       title: "Water Layer",
       url: "https://landscape6.arcgis.com/arcgis/rest/services/World_Distance_to_Surface_Water/ImageServer"
     })
 
-    // Create a query to fetch data from the feature layer
-    const query = windLayer.createQuery();
-    // Replace with the actual field names you want to extract
-    query.outFields = ['LATITUDE', 'LONGITUDE', 'WIND_DIRECT', 'WIND_SPEED']; 
-
-    // Execute the query and fetch the data
-    windLayer.queryFeatures(query).then((result) => {
-      const features = result.features;
-      
-      // Extract the desired attributes from each feature
-      const extractedData = features.map((feature) => {
-        const attributes = feature.attributes;
-        return {
-          "latitude": attributes.LATITUDE,
-          "longitude": attributes.LONGITUDE,
-          "windDirection": attributes.WIND_DIRECT,
-          "windSpeed": attributes.WIND_SPEED
-        };
-      });
-
-      // Process the extracted data as needed
-      console.log(extractedData);
+    const meteoToken = "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJ2IjoxLCJ1c2VyIjoidXBzYV90ZXN0X3Rlc3QiLCJpc3MiOiJsb2dpbi5tZXRlb21hdGljcy5jb20iLCJleHAiOjE2OTY3NTQ4NTAsInN1YiI6ImFjY2VzcyJ9.d3e_1_VplF5Lp5WVMMG43OqwsYNDcCyqGWrDA9046dbYIgS-ZadclSIwObOqZUP2F11AKsQtx5kw7TfkQZsCyg";
+    const windDirLayer = new VectorTileLayer({
+      title: "Wind direction Layer",
+      url: "https://api.meteomatics.com/mvt/barbs/wind_speed_100hPa:kn/style.json",
+      customParameters: { access_token: meteoToken, datetime: "now", color: "true" }
     });
+
+    const weatherLayer = new VectorTileLayer({
+      title: "Weather Layer",
+      url: "https://api.meteomatics.com/mvt/symbols/weather_symbol_1h:idx/style.json",
+      customParameters: { access_token: meteoToken, datetime: "now" }
+    });
+
+    // // Create a query to fetch data from the feature layer
+    // const query = windLayer.createQuery();
+    // // Replace with the actual field names you want to extract
+    // query.outFields = ['LATITUDE', 'LONGITUDE', 'WIND_DIRECT', 'WIND_SPEED'];
+
+    // // Execute the query and fetch the data
+    // windLayer.queryFeatures(query).then((result) => {
+    //   const features = result.features;
+
+    //   // Extract the desired attributes from each feature
+    //   const extractedData = features.map((feature) => {
+    //     const attributes = feature.attributes;
+    //     return {
+    //       "latitude": attributes.LATITUDE,
+    //       "longitude": attributes.LONGITUDE,
+    //       "windDirection": attributes.WIND_DIRECT,
+    //       "windSpeed": attributes.WIND_SPEED
+    //     };
+    //   });
+
+    //   // Process the extracted data as needed
+    //   console.log(extractedData);
+    // });
 
     this.map = new Map({
       basemap: "arcgis-imagery",
-      layers: [windLayer, waterLayer]
+      layers: [waterLayer, weatherLayer, windDirLayer]
     });
 
     this.view = new MapView({
@@ -146,7 +160,7 @@ export class MapComponent implements OnInit, OnDestroy {
       title: "{Name}",
       content: "{Description}"
     }
-      
+
     let confidence = ''
     if (fireData.confidence == 'l') {
       confidence = 'Low';
