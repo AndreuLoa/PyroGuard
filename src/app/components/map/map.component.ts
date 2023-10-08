@@ -14,6 +14,7 @@ import Point from '@arcgis/core/geometry/Point';
 import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol';
 import Graphic from '@arcgis/core/Graphic';
 import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
+import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
 import esriConfig from '@arcgis/core/config.js';
 esriConfig.assetsPath = "/assets/";
 esriConfig.apiKey = "AAPKcb316cbceb904bcabe2c351f094757dcALC9Q9-1SGUX-p3epTjwPM2kbUkb_hfV4nvUjWsV3OwxFdvi30rSOlRwiIyuLM1W";
@@ -45,11 +46,15 @@ export class MapComponent implements OnInit, OnDestroy {
    }
 
   async initializeMap(): Promise<MapView> {
-    console.log(this);
     const container = this.mapViewEl.nativeElement;
+    const windLayer = new FeatureLayer({
+      title: "Wind Layer",
+      url: "https://services9.arcgis.com/RHVPKKiFTONKtxq3/arcgis/rest/services/NOAA_METAR_current_wind_speed_direction_v1/FeatureServer"
+    })
 
     this.map = new Map({
-      basemap: "arcgis-terrain"
+      basemap: "arcgis-terrain",
+      layers: [windLayer]
     });
 
     this.view = new MapView({
