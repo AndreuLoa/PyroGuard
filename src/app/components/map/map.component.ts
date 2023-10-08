@@ -15,6 +15,8 @@ import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol';
 import Graphic from '@arcgis/core/Graphic';
 import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
 import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
+import ImageryLayer from '@arcgis/core/layers/ImageryLayer';
+import LayerList from '@arcgis/core/widgets/LayerList';
 import esriConfig from '@arcgis/core/config.js';
 
 esriConfig.assetsPath = "/assets/";
@@ -50,6 +52,10 @@ export class MapComponent implements OnInit, OnDestroy {
       title: "Wind Layer",
       url: "https://services9.arcgis.com/RHVPKKiFTONKtxq3/arcgis/rest/services/NOAA_METAR_current_wind_speed_direction_v1/FeatureServer"
     });
+    const waterLayer = new ImageryLayer({
+      title: "Water Layer",
+      url: "https://landscape6.arcgis.com/arcgis/rest/services/World_Distance_to_Surface_Water/ImageServer"
+    })
 
     // Create a query to fetch data from the feature layer
     const query = windLayer.createQuery();
@@ -77,7 +83,7 @@ export class MapComponent implements OnInit, OnDestroy {
 
     this.map = new Map({
       basemap: "arcgis-imagery",
-      layers: [windLayer]
+      layers: [windLayer, waterLayer]
     });
 
     this.view = new MapView({
@@ -87,7 +93,14 @@ export class MapComponent implements OnInit, OnDestroy {
       zoom: 5,
     });
 
-    this.graphicsLayer = new GraphicsLayer();
+    const layerList = new LayerList({
+      view: this.view
+    });
+    this.view.ui.add(layerList, "top-right");
+
+    this.graphicsLayer = new GraphicsLayer({
+      title: "Fire suceptibility",
+    });
     this.map.add(this.graphicsLayer);
     return await this.view.when();
   }
